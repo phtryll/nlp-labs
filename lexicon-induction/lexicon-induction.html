@@ -2235,7 +2235,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">December 9, 2025</p>
+      <p class="date-modified">December 21, 2025</p>
     </div>
   </div>
     
@@ -2270,47 +2270,271 @@ vertical-align: -.125em;
 <section id="selecting-languages" class="level2" data-number="1">
 <h2 data-number="1" class="anchored" data-anchor-id="selecting-languages"><span class="header-section-number">1</span> Selecting languages</h2>
 <p>We select 5 languages that are well represented in the training of <code>mBERT</code> and 5 others that are either less represented or absent (the only language that is completely absent from <code>mBERT</code> is Kurdish). All the languages also have a bilingual lexicon from <code>MUSE</code> that we will use for the CCA.</p>
-<div id="85593d0f" class="cell" data-execution_count="16">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># (language, code, link_to_MUSE)</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>langs <span class="op">=</span> [</span>
-<span id="cb1-3"><a href="#cb1-3"></a>    (<span class="st">&quot;albanian&quot;</span>,    <span class="st">&quot;sq&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-sq.0-5000.txt&quot;</span>),</span>
-<span id="cb1-4"><a href="#cb1-4"></a>    (<span class="st">&quot;arabic&quot;</span>,      <span class="st">&quot;ar&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-ar.0-5000.txt&quot;</span>),</span>
-<span id="cb1-5"><a href="#cb1-5"></a>    (<span class="st">&quot;french&quot;</span>,      <span class="st">&quot;fr&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-fr.0-5000.txt&quot;</span>),</span>
-<span id="cb1-6"><a href="#cb1-6"></a>    (<span class="st">&quot;german&quot;</span>,      <span class="st">&quot;de&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-de.0-5000.txt&quot;</span>),</span>
-<span id="cb1-7"><a href="#cb1-7"></a>    (<span class="st">&quot;greek&quot;</span>,       <span class="st">&quot;el&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-el.0-5000.txt&quot;</span>),</span>
-<span id="cb1-8"><a href="#cb1-8"></a>    (<span class="st">&quot;hindi&quot;</span>,       <span class="st">&quot;hi&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-hi.0-5000.txt&quot;</span>),</span>
-<span id="cb1-9"><a href="#cb1-9"></a>    (<span class="st">&quot;japanese&quot;</span>,    <span class="st">&quot;ja&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-ja.0-5000.txt&quot;</span>),</span>
-<span id="cb1-10"><a href="#cb1-10"></a>    (<span class="st">&quot;macedonian&quot;</span>,  <span class="st">&quot;mk&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-mk.0-5000.txt&quot;</span>),</span>
-<span id="cb1-11"><a href="#cb1-11"></a>    (<span class="st">&quot;persian&quot;</span>,     <span class="st">&quot;fa&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-fa.0-5000.txt&quot;</span>),</span>
-<span id="cb1-12"><a href="#cb1-12"></a>    (<span class="st">&quot;thai&quot;</span>,        <span class="st">&quot;th&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-th.0-5000.txt&quot;</span>)</span>
-<span id="cb1-13"><a href="#cb1-13"></a>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="7d2c4b0f" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="im">from</span> datasets <span class="im">import</span> disable_progress_bars</span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a>disable_progress_bars()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<div id="fe8c7260" class="cell" data-execution_count="13">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="im">import</span> requests</span>
-<span id="cb2-2"><a href="#cb2-2"></a><span class="im">from</span> datasets <span class="im">import</span> load_dataset</span>
-<span id="cb2-3"><a href="#cb2-3"></a></span>
-<span id="cb2-4"><a href="#cb2-4"></a><span class="kw">def</span> install_datasets(langs):</span>
-<span id="cb2-5"><a href="#cb2-5"></a>    corpora <span class="op">=</span> {}</span>
-<span id="cb2-6"><a href="#cb2-6"></a></span>
-<span id="cb2-7"><a href="#cb2-7"></a>    <span class="cf">for</span> lang, code, links <span class="kw">in</span> langs:</span>
-<span id="cb2-8"><a href="#cb2-8"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Processing </span><span class="sc">{</span>lang<span class="sc">}</span><span class="ss">...&quot;</span>)</span>
-<span id="cb2-9"><a href="#cb2-9"></a>        corpora[lang] <span class="op">=</span> {}</span>
-<span id="cb2-10"><a href="#cb2-10"></a>        </span>
-<span id="cb2-11"><a href="#cb2-11"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="ch">\t</span><span class="ss">Loading pairs...&quot;</span>)</span>
-<span id="cb2-12"><a href="#cb2-12"></a>        data <span class="op">=</span> load_dataset(</span>
-<span id="cb2-13"><a href="#cb2-13"></a>            <span class="st">&quot;sentence-transformers/parallel-sentences-jw300&quot;</span>,</span>
-<span id="cb2-14"><a href="#cb2-14"></a>            <span class="ss">f&quot;en-</span><span class="sc">{</span>code<span class="sc">}</span><span class="ss">&quot;</span>,</span>
-<span id="cb2-15"><a href="#cb2-15"></a>            split<span class="op">=</span><span class="st">&quot;train&quot;</span></span>
-<span id="cb2-16"><a href="#cb2-16"></a>        )</span>
-<span id="cb2-17"><a href="#cb2-17"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="ch">\t</span><span class="ss">Loaded JW300 for </span><span class="sc">{</span>lang<span class="sc">}</span><span class="ss">&quot;</span>)</span>
-<span id="cb2-18"><a href="#cb2-18"></a>        corpora[lang][<span class="st">&#39;pairs&#39;</span>] <span class="op">=</span> data.take(<span class="dv">5000</span>) <span class="co"># type: ignore</span></span>
-<span id="cb2-19"><a href="#cb2-19"></a></span>
-<span id="cb2-20"><a href="#cb2-20"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="ch">\t</span><span class="ss">Loading lexicons...&quot;</span>)</span>
-<span id="cb2-21"><a href="#cb2-21"></a>        text <span class="op">=</span> requests.get(links).content.decode(<span class="st">&quot;utf-8&quot;</span>, errors<span class="op">=</span><span class="st">&quot;ignore&quot;</span>)</span>
-<span id="cb2-22"><a href="#cb2-22"></a>        lexicon <span class="op">=</span> [<span class="bu">tuple</span>(line.split(<span class="va">None</span>, <span class="dv">1</span>)) <span class="cf">for</span> line <span class="kw">in</span> text.splitlines() <span class="cf">if</span> line.strip()]</span>
-<span id="cb2-23"><a href="#cb2-23"></a>        corpora[lang][<span class="st">&quot;lexicon&quot;</span>] <span class="op">=</span> lexicon</span>
-<span id="cb2-24"><a href="#cb2-24"></a></span>
-<span id="cb2-25"><a href="#cb2-25"></a>    <span class="cf">return</span> corpora</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="85593d0f" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># (language, code, link_to_MUSE)</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a>langs <span class="op">=</span> [</span>
+<span id="cb2-3"><a href="#cb2-3"></a>    (<span class="st">&quot;albanian&quot;</span>,    <span class="st">&quot;sq&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-sq.0-5000.txt&quot;</span>),</span>
+<span id="cb2-4"><a href="#cb2-4"></a>    (<span class="st">&quot;arabic&quot;</span>,      <span class="st">&quot;ar&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-ar.0-5000.txt&quot;</span>),</span>
+<span id="cb2-5"><a href="#cb2-5"></a>    (<span class="st">&quot;french&quot;</span>,      <span class="st">&quot;fr&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-fr.0-5000.txt&quot;</span>),</span>
+<span id="cb2-6"><a href="#cb2-6"></a>    (<span class="st">&quot;german&quot;</span>,      <span class="st">&quot;de&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-de.0-5000.txt&quot;</span>),</span>
+<span id="cb2-7"><a href="#cb2-7"></a>    (<span class="st">&quot;greek&quot;</span>,       <span class="st">&quot;el&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-el.0-5000.txt&quot;</span>),</span>
+<span id="cb2-8"><a href="#cb2-8"></a>    (<span class="st">&quot;hindi&quot;</span>,       <span class="st">&quot;hi&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-hi.0-5000.txt&quot;</span>),</span>
+<span id="cb2-9"><a href="#cb2-9"></a>    (<span class="st">&quot;japanese&quot;</span>,    <span class="st">&quot;ja&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-ja.0-5000.txt&quot;</span>),</span>
+<span id="cb2-10"><a href="#cb2-10"></a>    (<span class="st">&quot;macedonian&quot;</span>,  <span class="st">&quot;mk&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-mk.0-5000.txt&quot;</span>),</span>
+<span id="cb2-11"><a href="#cb2-11"></a>    (<span class="st">&quot;persian&quot;</span>,     <span class="st">&quot;fa&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-fa.0-5000.txt&quot;</span>),</span>
+<span id="cb2-12"><a href="#cb2-12"></a>    (<span class="st">&quot;thai&quot;</span>,        <span class="st">&quot;th&quot;</span>,   <span class="st">&quot;https://dl.fbaipublicfiles.com/arrival/dictionaries/en-th.0-5000.txt&quot;</span>)</span>
+<span id="cb2-13"><a href="#cb2-13"></a>]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="fe8c7260" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1"></a><span class="im">import</span> requests</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="im">from</span> datasets <span class="im">import</span> load_dataset</span>
+<span id="cb3-3"><a href="#cb3-3"></a></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="kw">def</span> install_datasets(langs):</span>
+<span id="cb3-5"><a href="#cb3-5"></a>    corpora <span class="op">=</span> {}</span>
+<span id="cb3-6"><a href="#cb3-6"></a></span>
+<span id="cb3-7"><a href="#cb3-7"></a>    <span class="cf">for</span> lang, code, links <span class="kw">in</span> langs:</span>
+<span id="cb3-8"><a href="#cb3-8"></a>        <span class="bu">print</span>(<span class="ss">f&quot;Processing </span><span class="sc">{</span>lang<span class="sc">}</span><span class="ss">...&quot;</span>)</span>
+<span id="cb3-9"><a href="#cb3-9"></a>        corpora[lang] <span class="op">=</span> {}</span>
+<span id="cb3-10"><a href="#cb3-10"></a>        </span>
+<span id="cb3-11"><a href="#cb3-11"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="ch">\t</span><span class="ss">Loading pairs...&quot;</span>)</span>
+<span id="cb3-12"><a href="#cb3-12"></a>        data <span class="op">=</span> load_dataset(</span>
+<span id="cb3-13"><a href="#cb3-13"></a>            <span class="st">&quot;sentence-transformers/parallel-sentences-jw300&quot;</span>,</span>
+<span id="cb3-14"><a href="#cb3-14"></a>            <span class="ss">f&quot;en-</span><span class="sc">{</span>code<span class="sc">}</span><span class="ss">&quot;</span>,</span>
+<span id="cb3-15"><a href="#cb3-15"></a>            split<span class="op">=</span><span class="st">&quot;train&quot;</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a>        )</span>
+<span id="cb3-17"><a href="#cb3-17"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="ch">\t</span><span class="ss">Loaded JW300 for </span><span class="sc">{</span>lang<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb3-18"><a href="#cb3-18"></a>        corpora[lang][<span class="st">&#39;pairs&#39;</span>] <span class="op">=</span> data.take(<span class="dv">5000</span>).<span class="bu">map</span>( <span class="co"># type: ignore</span></span>
+<span id="cb3-19"><a href="#cb3-19"></a>            <span class="kw">lambda</span> x: {</span>
+<span id="cb3-20"><a href="#cb3-20"></a>                <span class="st">&#39;english&#39;</span>: x[<span class="st">&#39;english&#39;</span>].replace(<span class="st">&#39;</span><span class="ch">\u200b</span><span class="st">&#39;</span>, <span class="st">&#39;&#39;</span>).replace(<span class="st">&#39;</span><span class="ch">\u200f</span><span class="st">&#39;</span>, <span class="st">&#39;&#39;</span>).replace(<span class="st">&#39;</span><span class="ch">\u200c</span><span class="st">&#39;</span>, <span class="st">&#39;&#39;</span>),</span>
+<span id="cb3-21"><a href="#cb3-21"></a>                <span class="st">&#39;non_english&#39;</span>: x[<span class="st">&#39;non_english&#39;</span>].replace(<span class="st">&#39;</span><span class="ch">\u200b</span><span class="st">&#39;</span>, <span class="st">&#39;&#39;</span>).replace(<span class="st">&#39;</span><span class="ch">\u200f</span><span class="st">&#39;</span>, <span class="st">&#39;&#39;</span>).replace(<span class="st">&#39;</span><span class="ch">\u200c</span><span class="st">&#39;</span>, <span class="st">&#39;&#39;</span>)</span>
+<span id="cb3-22"><a href="#cb3-22"></a>            }</span>
+<span id="cb3-23"><a href="#cb3-23"></a>        )</span>
+<span id="cb3-24"><a href="#cb3-24"></a></span>
+<span id="cb3-25"><a href="#cb3-25"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="ch">\t</span><span class="ss">Loading lexicons...&quot;</span>)</span>
+<span id="cb3-26"><a href="#cb3-26"></a>        text <span class="op">=</span> requests.get(links).content.decode(<span class="st">&quot;utf-8&quot;</span>, errors<span class="op">=</span><span class="st">&quot;ignore&quot;</span>)</span>
+<span id="cb3-27"><a href="#cb3-27"></a>        <span class="cf">if</span> <span class="st">&#39;</span><span class="ch">\t</span><span class="st">&#39;</span> <span class="kw">in</span> text:</span>
+<span id="cb3-28"><a href="#cb3-28"></a>            lexicon <span class="op">=</span> [<span class="bu">tuple</span>(line.split(<span class="st">&#39;</span><span class="ch">\t</span><span class="st">&#39;</span>, <span class="dv">1</span>)) <span class="cf">for</span> line <span class="kw">in</span> text.splitlines() <span class="cf">if</span> line.strip() <span class="kw">and</span> <span class="st">&#39;</span><span class="ch">\t</span><span class="st">&#39;</span> <span class="kw">in</span> line]</span>
+<span id="cb3-29"><a href="#cb3-29"></a>        <span class="cf">else</span>:</span>
+<span id="cb3-30"><a href="#cb3-30"></a>            lexicon <span class="op">=</span> [<span class="bu">tuple</span>(line.split(<span class="va">None</span>, <span class="dv">1</span>)) <span class="cf">for</span> line <span class="kw">in</span> text.splitlines() <span class="cf">if</span> line.strip()]</span>
+<span id="cb3-31"><a href="#cb3-31"></a>        corpora[lang][<span class="st">&quot;lexicon&quot;</span>] <span class="op">=</span> lexicon</span>
+<span id="cb3-32"><a href="#cb3-32"></a></span>
+<span id="cb3-33"><a href="#cb3-33"></a>    <span class="cf">return</span> corpora</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="c2eda3df" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1"></a><span class="im">import</span> os</span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="im">from</span> datasets <span class="im">import</span> Dataset</span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="kw">def</span> save_datasets(corpora, data_folder<span class="op">=</span><span class="st">&quot;data&quot;</span>):</span>
+<span id="cb4-5"><a href="#cb4-5"></a>    os.makedirs(data_folder, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-6"><a href="#cb4-6"></a>    </span>
+<span id="cb4-7"><a href="#cb4-7"></a>    <span class="cf">for</span> lang, content <span class="kw">in</span> corpora.items():</span>
+<span id="cb4-8"><a href="#cb4-8"></a>        lang_folder <span class="op">=</span> os.path.join(data_folder, lang)</span>
+<span id="cb4-9"><a href="#cb4-9"></a>        os.makedirs(lang_folder, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb4-10"><a href="#cb4-10"></a>        </span>
+<span id="cb4-11"><a href="#cb4-11"></a>        <span class="co"># Save pairs as jsonl</span></span>
+<span id="cb4-12"><a href="#cb4-12"></a>        pairs_path <span class="op">=</span> os.path.join(lang_folder, <span class="st">&quot;pairs.jsonl&quot;</span>)</span>
+<span id="cb4-13"><a href="#cb4-13"></a>        content[<span class="st">&#39;pairs&#39;</span>].to_json(pairs_path)</span>
+<span id="cb4-14"><a href="#cb4-14"></a>        </span>
+<span id="cb4-15"><a href="#cb4-15"></a>        <span class="co"># Save lexicon as text file</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>        lexicon_path <span class="op">=</span> os.path.join(lang_folder, <span class="st">&quot;lexicon.txt&quot;</span>)</span>
+<span id="cb4-17"><a href="#cb4-17"></a>        <span class="cf">with</span> <span class="bu">open</span>(lexicon_path, <span class="st">&#39;w&#39;</span>, encoding<span class="op">=</span><span class="st">&#39;utf-8&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb4-18"><a href="#cb4-18"></a>            <span class="cf">for</span> src, tgt <span class="kw">in</span> content[<span class="st">&#39;lexicon&#39;</span>]:</span>
+<span id="cb4-19"><a href="#cb4-19"></a>                f.write(<span class="ss">f&quot;</span><span class="sc">{</span>src<span class="sc">}</span><span class="ch">\t</span><span class="sc">{</span>tgt<span class="sc">}</span><span class="ch">\n</span><span class="ss">&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="c0552a32" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">def</span> load_datasets(langs, data_folder<span class="op">=</span><span class="st">&quot;data&quot;</span>):</span>
+<span id="cb5-2"><a href="#cb5-2"></a>    corpora <span class="op">=</span> {}</span>
+<span id="cb5-3"><a href="#cb5-3"></a>    </span>
+<span id="cb5-4"><a href="#cb5-4"></a>    <span class="cf">for</span> lang, _, _ <span class="kw">in</span> langs:</span>
+<span id="cb5-5"><a href="#cb5-5"></a>        lang_folder <span class="op">=</span> os.path.join(data_folder, lang)</span>
+<span id="cb5-6"><a href="#cb5-6"></a>        corpora[lang] <span class="op">=</span> {}</span>
+<span id="cb5-7"><a href="#cb5-7"></a>        </span>
+<span id="cb5-8"><a href="#cb5-8"></a>        <span class="co"># Load pairs</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a>        pairs_path <span class="op">=</span> os.path.join(lang_folder, <span class="st">&quot;pairs.jsonl&quot;</span>)</span>
+<span id="cb5-10"><a href="#cb5-10"></a>        corpora[lang][<span class="st">&#39;pairs&#39;</span>] <span class="op">=</span> Dataset.from_json(pairs_path)</span>
+<span id="cb5-11"><a href="#cb5-11"></a>        </span>
+<span id="cb5-12"><a href="#cb5-12"></a>        <span class="co"># Load lexicon</span></span>
+<span id="cb5-13"><a href="#cb5-13"></a>        lexicon_path <span class="op">=</span> os.path.join(lang_folder, <span class="st">&quot;lexicon.txt&quot;</span>)</span>
+<span id="cb5-14"><a href="#cb5-14"></a>        <span class="cf">with</span> <span class="bu">open</span>(lexicon_path, <span class="st">&#39;r&#39;</span>, encoding<span class="op">=</span><span class="st">&#39;utf-8&#39;</span>) <span class="im">as</span> f:</span>
+<span id="cb5-15"><a href="#cb5-15"></a>            lexicon <span class="op">=</span> [<span class="bu">tuple</span>(line.strip().split(<span class="st">&#39;</span><span class="ch">\t</span><span class="st">&#39;</span>, <span class="dv">1</span>)) <span class="cf">for</span> line <span class="kw">in</span> f <span class="cf">if</span> line.strip()]</span>
+<span id="cb5-16"><a href="#cb5-16"></a>        corpora[lang][<span class="st">&#39;lexicon&#39;</span>] <span class="op">=</span> lexicon</span>
+<span id="cb5-17"><a href="#cb5-17"></a>    </span>
+<span id="cb5-18"><a href="#cb5-18"></a>    <span class="cf">return</span> corpora</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="6b2d30a6" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1"></a>data <span class="op">=</span> install_datasets(langs)</span>
+<span id="cb6-2"><a href="#cb6-2"></a>save_datasets(data)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Processing albanian...
+    Loading pairs...
+    Loaded JW300 for albanian
+    Loading lexicons...
+Processing arabic...
+    Loading pairs...
+    Loaded JW300 for arabic
+    Loading lexicons...
+Processing french...
+    Loading pairs...
+    Loaded JW300 for french
+    Loading lexicons...
+Processing german...
+    Loading pairs...
+    Loaded JW300 for german
+    Loading lexicons...
+Processing greek...
+    Loading pairs...
+    Loaded JW300 for greek
+    Loading lexicons...
+Processing hindi...
+    Loading pairs...
+    Loaded JW300 for hindi
+    Loading lexicons...
+Processing japanese...
+    Loading pairs...
+    Loaded JW300 for japanese
+    Loading lexicons...
+Processing macedonian...
+    Loading pairs...
+    Loaded JW300 for macedonian
+    Loading lexicons...
+Processing persian...
+    Loading pairs...
+    Loaded JW300 for persian
+    Loading lexicons...
+Processing thai...
+    Loading pairs...
+    Loaded JW300 for thai
+    Loading lexicons...</code></pre>
+</div>
+</div>
+<div id="4f18f5d8" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1"></a>data <span class="op">=</span> load_datasets(langs)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="9f31d9fe" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1"></a><span class="cf">for</span> lang, corpora <span class="kw">in</span> data.items():</span>
+<span id="cb9-2"><a href="#cb9-2"></a>    <span class="bu">print</span>(<span class="ss">f&quot;For </span><span class="sc">{</span>lang<span class="sc">}</span><span class="ss">:&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3"></a>    <span class="cf">for</span> keys, vals <span class="kw">in</span> corpora.items():</span>
+<span id="cb9-4"><a href="#cb9-4"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>keys<span class="sc">}</span><span class="ss"> (</span><span class="sc">{</span><span class="bu">type</span>(vals)<span class="sc">}</span><span class="ss">)&quot;</span>)</span>
+<span id="cb9-5"><a href="#cb9-5"></a>        <span class="bu">print</span>(<span class="ss">f&quot;</span><span class="sc">{</span>vals[:<span class="dv">5</span>]<span class="sc">}</span><span class="ss">&quot;</span>)</span>
+<span id="cb9-6"><a href="#cb9-6"></a>    <span class="bu">print</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>For albanian:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;Page Two&#39;, &#39;1945 - 1995 What Have We Learned?&#39;, &#39;3 - 14&#39;, &#39;Fifty years have passed since the end of World War II.&#39;, &#39;In what ways has humankind progressed?&#39;], &#39;non_english&#39;: [&#39;Faqja dy&#39;, &#39;1945 - 1995 Çfarë kemi mësuar?&#39;, &#39;3 - 14&#39;, &#39;Kanë kaluar pesëdhjetë vjet që nga mbarimi i Luftës II Botërore.&#39;, &#39;Në cilat fusha ka bërë progres njeriu?&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;and&#39;, &#39;dhe&#39;), (&#39;was&#39;, &#39;ishte&#39;), (&#39;for&#39;, &#39;për&#39;), (&#39;for&#39;, &#39;per&#39;), (&#39;that&#39;, &#39;që&#39;)]
+
+For arabic:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;How Can I Control My TV Viewing Habits?&#39;, &#39;Perhaps you have asked yourself this question, as well as others: “How Can I Say No to Premarital Sex? ”&#39;, &#39;“ How Do I Know If It’s Real Love? ”&#39;, &#39;“ Why Do I Get So Depressed? ”&#39;, &#39;These are chapter titles in the new book Questions Young People Ask  — Answers That Work.&#39;], &#39;non_english&#39;: [&#39;&#39;, &#39;كيف يمكنني ان اضبط عادات مشاهدتي التلفزيون ؟&#39;, &#39;&#39;, &#39;ربما طرحتم على أنفسكم هذا السؤال ، بالإضافة الى اسئلة اخرى مثل : « كيف يمكنني ان اقول لا للجنس قبل الزواج ؟ » ، « كيف اعرف ما اذا كان حبا حقيقيا ؟ » ، و « لماذا أكتئب الى هذا الحد ؟ » .&#39;, &#39;ان هذه الاسئلة هي عناوين بعض الفصول من كتاب اسئلة يطرحها الاحداث — اجوبة تنجح .&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;the&#39;, &#39;the&#39;), (&#39;the&#39;, &#39;ال&#39;), (&#39;and&#39;, &#39;وال&#39;), (&#39;was&#39;, &#39;كانت&#39;), (&#39;was&#39;, &#39;كان&#39;)]
+
+For french:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;“ A Good Word for the Witnesses ”&#39;, &#39;THE preaching activity of Jehovah’s witnesses is growing very rapidly.&#39;, &#39;This has required a large expansion of facilities at their international headquarters in Brooklyn, New York.&#39;, &#39;The expansion is arousing much comment in the community, even prompting a sermon at the Plymouth Church (Congregational), located just two blocks away.&#39;, &#39;More than a century ago, the church’s first minister, Henry Ward Beecher, lived on property that is now part of the Watchtower Society’s headquarters complex.&#39;], &#39;non_english&#39;: [&#39;“ Éloge des Témoins ”&#39;, &#39;L’ŒUVRE de prédication des témoins de Jéhovah s’étend rapidement.&#39;, &#39;Cette extension a exigé l’agrandissement de leur siège principal situé à Brooklyn, New York.&#39;, &#39;Pareille expansion suscite de nombreux commentaires dans la localité et a même été l’objet d’un prêche prononcé dans le temple Plymouth (de l’Église congrégationaliste), situé à deux pâtés de maisons du siège des témoins de Jéhovah.&#39;, &#39;Il y a plus d’un siècle, le premier pasteur de ce temple, Henry Ward Beecher, habitait une maison qui fait partie aujourd’hui de l’ensemble des bâtiments appartenant à la Société Watchtower.&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;the&#39;, &#39;le&#39;), (&#39;the&#39;, &#39;les&#39;), (&#39;the&#39;, &#39;la&#39;), (&#39;and&#39;, &#39;et&#39;), (&#39;was&#39;, &#39;fut&#39;)]
+
+For german:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;“ A Good Word for the Witnesses ”&#39;, &#39;THE preaching activity of Jehovah’s witnesses is growing very rapidly.&#39;, &#39;This has required a large expansion of facilities at their international headquarters in Brooklyn, New York.&#39;, &#39;The expansion is arousing much comment in the community, even prompting a sermon at the Plymouth Church (Congregational), located just two blocks away.&#39;, &#39;More than a century ago, the church’s first minister, Henry Ward Beecher, lived on property that is now part of the Watchtower Society’s headquarters complex.&#39;], &#39;non_english&#39;: [&#39;„ Ein Wort zugunsten der Zeugen Jehovas “&#39;, &#39;DAS Predigtwerk der Zeugen Jehovas dehnt sich sehr schnell aus.&#39;, &#39;Deshalb mußte ihr Hauptsitz in Brooklyn, New York (USA), vergrößert werden.&#39;, &#39;Diese Vergrößerung bildet einen Gesprächsstoff in Brooklyn; in der Plymouth - Kirche (Kongregationalisten), zwei Häuserblocks vom Hauptsitz entfernt, wurde sogar eine Predigt über dieses Thema gehalten.&#39;, &#39;Vor mehr als hundert Jahren wohnte der erste Pfarrer dieser Kirche, Henry Ward Beecher, in einem Haus, das auf Boden gebaut war, der jetzt zu dem Grund gehört, auf dem die Gebäude des Hauptsitzes der Watchtower Society stehen.&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;the&#39;, &#39;die&#39;), (&#39;the&#39;, &#39;der&#39;), (&#39;the&#39;, &#39;dem&#39;), (&#39;the&#39;, &#39;den&#39;), (&#39;the&#39;, &#39;das&#39;)]
+
+For greek:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;“ A Good Word for the Witnesses ”&#39;, &#39;THE preaching activity of Jehovah’s witnesses is growing very rapidly.&#39;, &#39;This has required a large expansion of facilities at their international headquarters in Brooklyn, New York.&#39;, &#39;The expansion is arousing much comment in the community, even prompting a sermon at the Plymouth Church (Congregational), located just two blocks away.&#39;, &#39;More than a century ago, the church’s first minister, Henry Ward Beecher, lived on property that is now part of the Watchtower Society’s headquarters complex.&#39;], &#39;non_english&#39;: [&#39;« Ένας Καλός Λόγος για τους Μάρτυρας »&#39;, &#39;Η ΔΡΑΣΙΣ κηρύγματος των μαρτύρων του Ιεχωβά μεγαλώνει πολύ γρήγορα.&#39;, &#39;Αυτό χρειάσθηκε μια μεγάλη επέκτασι ευκολιών στα διεθνή των γραφεία στο Μπρούκλυν της Νέας Υόρκης.&#39;, &#39;Η επέκτασις εγείρει πολλά σχόλια στην κοινότητα, και προκάλεσε ακόμη την εκφώνησι μιας ομιλίας στην Κογκρεγκασιοναλιστική Εκκλησία του Πλύμουθ, που κείται δύο μόνον τετράγωνα μακρυά.&#39;, &#39;Πριν από εκατό χρόνια και πλέον, ο πρώτος λειτουργός της εκκλησίας αυτής, ο Χένρυ Ουώρντ Μπήτσερ, διέμενε σε ιδιοκτησία που τώρα αποτελεί μέρος του συμπλέγματος των γραφείων της Εταιρίας Σκοπιά.&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;the&#39;, &#39;το&#39;), (&#39;and&#39;, &#39;και&#39;), (&#39;was&#39;, &#39;ήταν&#39;), (&#39;for&#39;, &#39;για&#39;), (&#39;for&#39;, &#39;for&#39;)]
+
+For hindi:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;Big Business and Crime&#39;, &#39;BIG BUSINESS!&#39;, &#39;It affects all of us. It helps us  — and it harms us.&#39;, &#39;And there are things we can do about it. A giant, or “big, ” corporation may have assets worth $1,500,000,000.&#39;, &#39;Many have far more. That kind of money represents power.&#39;], &#39;non_english&#39;: [&#39;बड़ा व्यवसाय और अपराध&#39;, &#39;बड़ा व्यवसाय!&#39;, &#39;हम सब पर इसका प्रभाव पड़ता है ।&#39;, &#39;यह हमारी सहायता करता है — और हमें हानि भी पहुँचाता है ।&#39;, &#39;और कुछ ऐसी बातें हैं जो हम उसके बारे में कर सकते हैं ।&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;and&#39;, &#39;और&#39;), (&#39;was&#39;, &#39;था&#39;), (&#39;was&#39;, &#39;थी&#39;), (&#39;for&#39;, &#39;लिये&#39;), (&#39;that&#39;, &#39;उस&#39;)]
+
+For japanese:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;“ A Good Word for the Witnesses ”&#39;, &#39;THE preaching activity of Jehovah’s witnesses is growing very rapidly.&#39;, &#39;This has required a large expansion of facilities at their international headquarters in Brooklyn, New York.&#39;, &#39;&#39;, &#39;The expansion is arousing much comment in the community, even prompting a sermon at the Plymouth Church (Congregational), located just two blocks away.&#39;], &#39;non_english&#39;: [&#39;「エホバ  の  証人  へ  の  賛辞」&#39;, &#39;エホバ  の  証人  の  伝道  活動  は  急速  に  発展  し  た  ため ， ニューヨーク  市  ブルックリン  に  ある  その  国際  本部  の  施設  は  大いに  拡張  さ  れ  まし  た。&#39;, &#39;この  こと  は  その  付近  の  人々  の  話題  に  も  のぼり ， 本部  から  2  区画  先  の  プリマス  教会 （ 組合  教会 ） では ， 説教  の  中  に  さえ  取り上げ  られ  まし  た。&#39;, &#39;100  年  ほど  前 ， その  教会  の  初代  の  牧師  だっ  た  ヘンリー  ･  ウォード  ･  ビーチャー  の  住ん  で  い  た  建物  は  今  で  は ， ものみの塔  協会  の  大  規模  な  本部  の  建物  の  一部  と  なっ  て  い  ます。&#39;, &#39;さて ， 「エホバ  の  証人  へ  の  賛辞」と  題する  その  説教  を  し  た  ハリー  ･  H  ･  クルーナー  博士  は ， まず  最初  に  こう  述べ  まし  た。「&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;and&#39;, &#39;そして&#39;), (&#39;was&#39;, &#39;was&#39;), (&#39;for&#39;, &#39;for&#39;), (&#39;from&#39;, &#39;から&#39;), (&#39;this&#39;, &#39;この&#39;)]
+
+For macedonian:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;Young People Ask...&#39;, &#39;How Can I Cope With Injustice?&#39;, &#39;“ Only those who have money are respected, but we who don’t even have anything to eat or anywhere to sleep are treated like animals.&#39;, &#39;If I expect anything for the future, it is to die without anyone taking notice. ” — Arnulfo, a 15 - year - old homeless boy.&#39;, &#39;THERE is much injustice in the world.&#39;], &#39;non_english&#39;: [&#39;Младите прашуваат...&#39;, &#39;Како можам да се справам со неправдата?&#39;, &#39;„ Ги почитуваат само оние што имаат пари, додека нас кои немаме дури ни што да јадеме ниту каде да спиеме, нѐ третираат како животни.&#39;, &#39;Ако очекувам нешто во иднината, тоа е да умрам и никој да не го забележи тоа “(Арнулфо, 15 - годишно бездомно момче).&#39;, &#39;ВО СВЕТОТ има многу неправди.&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;the&#39;, &#39;на&#39;), (&#39;was&#39;, &#39;била&#39;), (&#39;was&#39;, &#39;беше&#39;), (&#39;for&#39;, &#39;за&#39;), (&#39;that&#39;, &#39;тоа&#39;)]
+
+For persian:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;© 2016 Watch Tower Bible and Tract Society of Pennsylvania&#39;, &#39;This publication is not for sale. It is provided as part of a worldwide Bible educational work supported by voluntary donations.&#39;, &#39;To make a donation, please visit www.jw.org.&#39;, &#39;&#39;, &#39;Unless otherwise indicated, Scripture quotations are from the modern - language New World Translation of the Holy Scriptures.&#39;], &#39;non_english&#39;: [&#39;© 2016 International Bible Students Association&#39;, &#39;این نشریه برای فروش نیست و جهت آموزش جهانی کتاب مقدّس تهیه شده است و مخارج آن از طریق اعانات تأمین میگردد .&#39;, &#39;برای اهدای اعانه میتوانید به وبسایت www.jw.org / fa مراجعه نمایید .&#39;, &#39;در نقل آیات بخش عبری کتاب مقدّس ، از ترجمهٔ هزارهٔ نو ۲۰۱۴ و بخش یونانی ، از کتاب مقدّس — ترجمهٔ دنیای جدید — مَتّی تا مکاشفه استفاده شده است .&#39;, &#39;در غیر این صورت نام ترجمهٔ مورد نظر ذکر شده است .&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;the&#39;, &#39;را&#39;), (&#39;was&#39;, &#39;بود&#39;), (&#39;for&#39;, &#39;برای&#39;), (&#39;that&#39;, &#39;که&#39;), (&#39;with&#39;, &#39;با&#39;)]
+
+For thai:
+pairs (&lt;class &#39;datasets.arrow_dataset.Dataset&#39;&gt;)
+{&#39;english&#39;: [&#39;&#39;, &#39;Religion’s Future in View of Its Past&#39;, &#39;Part 13  — 476 C.E. onward  — Out of Darkness, Something “Holy ”&#39;, &#39;“ Sins committed in the dark are seen in Heaven like sheets of fire. ”  — Chinese proverb&#39;, &#39;IN APRIL 1988 the Church in the Soviet Union rejoiced to hear General Secretary Mikhail Gorbachev publicly state that mistakes made by the State in its relationship with the Church and its members were to be corrected.&#39;], &#39;non_english&#39;: [&#39;อนาคต  ของ  ศาสนา  จาก  การ  พิจารณา  ศาสนา  ใน  อดีต&#39;, &#39;ตอน  ที่ 13: จาก ส.&#39;, &#39;ศ. 476 เป็น  ต้น  มา — สิ่ง  ที่  ถือ  ว่า “ศักดิ์สิทธิ์ ” จาก  ความ  มืด&#39;, &#39;“ บาป  ซึ่ง  ได้  กระทำ  ใน  ที่  มืด  ปรากฏ  ดุจ  เปลว  เพลิง  ใน  สวรรค์. ” — สุภาษิต  จีน&#39;, &#39;เดือน  เมษายน 1988 คริสต์  จักร  ใน  สหภาพ  โซเวียต  พา  กัน  ชื่นชม  ที่  ได้  ยิน  เลขาธิการ  ใหญ่  มิ คา อิล กอร์ บา ชอฟ  แถลง  อย่าง  เปิด  เผย  ว่า  ข้อ  ผิด  พลาด  ต่าง ๆ ใน  ความ  สัมพันธ์  ที่  รัฐ  ได้  กระทำ  ต่อ  คริสต์  ศาสนจักร  และ  คริสต์  สมาชิก  จะ  ต้อง  ได้  รับ  การ  แก้ไข.&#39;]}
+lexicon (&lt;class &#39;list&#39;&gt;)
+[(&#39;the&#39;, &#39;เดอะ&#39;), (&#39;and&#39;, &#39;และ&#39;), (&#39;and&#39;, &#39;แล้ว&#39;), (&#39;for&#39;, &#39;สำหรับ&#39;), (&#39;for&#39;, &#39;เพื่อ&#39;)]
+</code></pre>
+</div>
+</div>
+<div id="8a272702" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1"></a><span class="im">import</span> logging</span>
+<span id="cb11-2"><a href="#cb11-2"></a>logging.basicConfig(level<span class="op">=</span>logging.INFO)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="8190a0ef" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1"></a><span class="im">from</span> transformers <span class="im">import</span> logging</span>
+<span id="cb12-2"><a href="#cb12-2"></a></span>
+<span id="cb12-3"><a href="#cb12-3"></a>logging.set_verbosity_error()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="bc73612d" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoTokenizer, AutoModelForMaskedLM</span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a>tokenizer <span class="op">=</span> AutoTokenizer.from_pretrained(<span class="st">&quot;google-bert/bert-base-multilingual-cased&quot;</span>)</span>
+<span id="cb13-4"><a href="#cb13-4"></a>model <span class="op">=</span> AutoModelForMaskedLM.from_pretrained(<span class="st">&quot;google-bert/bert-base-multilingual-cased&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="06df3d55" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1"></a>text <span class="op">=</span> [<span class="st">&quot;Replace me by any text you&#39;d like.&quot;</span>, <span class="st">&quot;Another text to encode.&quot;</span>]</span>
+<span id="cb14-2"><a href="#cb14-2"></a>encoded_input <span class="op">=</span> tokenizer(text, return_tensors<span class="op">=</span><span class="st">&#39;pt&#39;</span>, padding<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-3"><a href="#cb14-3"></a>outputs <span class="op">=</span> model(</span>
+<span id="cb14-4"><a href="#cb14-4"></a>    <span class="op">**</span>encoded_input,</span>
+<span id="cb14-5"><a href="#cb14-5"></a>    output_hidden_states<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb14-6"><a href="#cb14-6"></a>    return_dict<span class="op">=</span><span class="va">True</span></span>
+<span id="cb14-7"><a href="#cb14-7"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div id="f2e32210" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1"></a><span class="cf">for</span> <span class="bu">input</span> <span class="kw">in</span> encoded_input[<span class="st">&#39;input_ids&#39;</span>]:</span>
+<span id="cb15-2"><a href="#cb15-2"></a>    <span class="bu">print</span>(<span class="bu">len</span>(<span class="bu">input</span>))</span>
+<span id="cb15-3"><a href="#cb15-3"></a>    <span class="bu">print</span>(<span class="bu">input</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>13
+tensor([  101, 72337, 72654, 10911, 10155, 11178, 15541, 13028,   112,   172,
+        11850,   119,   102])
+13
+tensor([  101, 17101, 15541, 10114, 10110, 54261,   119,   102,     0,     0,
+            0,     0,     0])</code></pre>
+</div>
+</div>
+<div id="963f8e49" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1"></a>word_ids <span class="op">=</span> encoded_input.word_ids(batch_index<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="bu">print</span>(word_ids)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[None, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, None]</code></pre>
+</div>
+</div>
+<div id="cf766a5e" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1"></a>token_embeddings <span class="op">=</span> outputs.hidden_states[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb19-2"><a href="#cb19-2"></a><span class="bu">print</span>(token_embeddings.shape)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>torch.Size([2, 13, 768])</code></pre>
+</div>
 </div>
 </section>
 
