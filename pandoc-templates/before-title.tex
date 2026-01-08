@@ -1,0 +1,123 @@
+%--------------------------%
+%---- Spacing settings ----%
+%--------------------------%
+
+\usepackage{setspace}
+% Set spacing between lines
+\setstretch{1}
+% Settings for paragraph indent and skip
+\setparsizes{0em}{0.5\baselineskip plus 0.5\baselineskip}{1em plus 1fil}
+% Adjust the space between tables/figs and texts
+\setlength{\textfloatsep}{0.5\baselineskip}
+% Adjust the spacing for footnotes
+\deffootnote[1em]{1em}{1em}{\textsuperscript{\thefootnotemark}}
+
+%-----------------------%
+%---- Font settings ----%
+%-----------------------%
+
+% Micro-typography support
+% \usepackage[final]{microtype}
+
+%---- Set font ----%
+% Options: see documentation
+\usepackage[default]{fontsetup}
+
+%---- Document font styles ----%
+% All titles and sections are serif
+% \addtokomafont{disposition}{\rmfamily}
+% Remove bold emphasis for main subtitle
+\addtokomafont{subtitle}{\mdseries}
+% Change font style for header and footer
+\addtokomafont{pageheadfoot}{\normalfont\footnotesize\scshape}
+% Ensures page numbers are also changed
+\addtokomafont{pagination}{\normalfont\footnotesize\scshape}
+
+%---------------------------%
+%---- Header and footer ----%
+%---------------------------%
+
+\usepackage[
+    % Auto section headers
+    automark,
+    % Upper headings for one-sided docs
+    autooneside=true,
+    % Add line after header
+    headsepline,
+    % Add line before footer
+    footsepline
+]{scrlayer-scrpage}
+
+% Set up the headers
+\ihead{} % Top left
+\ohead{} % Top right
+\chead{$title$} % Clear the center head
+\ifoot{$author$} % Bottom left
+\ofoot{\pagemark} % Bottom right
+\cfoot{} % Clear center foot
+
+%---------------------------%
+%---- Verbatim settings ----%
+%---------------------------%
+
+\usepackage{etoolbox} % To redefine existing commands
+\usepackage{fancyvrb} % For fancy verbatim environnements
+\usepackage{fvextra} % Update on previous package
+\usepackage{framed}
+
+% \renewenvironment{shaded}{\begin{tcolorbox}[boxrule=0pt, enhanced, frame hidden, sharp corners, breakable]}{\end{tcolorbox}}
+
+\renewenvironment{shaded}{\begin{tcolorbox}[boxrule=0pt, enhanced, frame hidden, sharp corners, breakable, colback=green!5]}{\end{tcolorbox}}
+
+% Encapsulate verbatim in mini-page environnements so that pages do not break
+% \BeforeBeginEnvironment{verbatim}{\par\begin{minipage}{\textwidth}\begin{Shaded}}
+% \AfterEndEnvironment{verbatim}{\end{Shaded}\end{minipage}\par}
+
+\BeforeBeginEnvironment{verbatim}{\begin{shaded}}
+\AfterEndEnvironment{verbatim}{\end{shaded}}
+
+\AtBeginEnvironment{Verbatim}{\small}
+
+% Code folds nicely at the end of \textwidth
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  commandchars=\\\{\},
+  fontsize=\footnotesize
+}
+
+\AtBeginDocument{
+  % Code output folds nicely
+  \RecustomVerbatimEnvironment{verbatim}{Verbatim}{
+    showspaces=false,
+    showtabs=false,
+    breaklines=true,
+    fontsize=\footnotesize
+  }
+}
+
+%------------------------------%
+%---- Page layout settings ----%
+%------------------------------%
+
+%---- Default margins ----%
+% Include geometry package for precise control of layout
+\usepackage[pass]{geometry}
+% Apply `KOMAoptions` at the end of preamble
+\KOMAoptions{
+    % No binding correction
+    BCOR=0pt,
+    % Include header in DIV
+    headinclude=false,
+    % Include footer in DIV
+    footinclude=false,
+    % Include margin notes
+    mpinclude=false,
+    % Keep original division
+    DIV=last,
+}
+% Recalculate type-area
+\recalctypearea{}
+% Save default geometry
+\savegeometry{default}
